@@ -207,11 +207,31 @@ public:
         } // check if visit or not
     } // Filter and save to new vector
     
-    void Delete( int data, DataStruct* Largest ) {
-        if( Largest->rightChild != NULL ) Delete( data, Largest->rightChild );
+    DataStruct* Delete( int data, DataStruct* walker ) {
+        DataStruct* temp = NULL;
+        if( !walker ) cout<<"BST empty"<<endl;
         else {
-            if( Largest->leftChild != NULL && Largest->parent != NULL )
+            if( data < walker->HP ) walker->leftChild = Delete( data, walker->leftChild );
+            else if( data > walker->HP ) walker->rightChild = Delete( data, walker->rightChild );
+            else{
+                if( walker->leftChild && walker-> rightChild ){
+                    temp = walker->same;
+                    walker->same->leftChild = walker->leftChild;
+                    walker = walker->parent;
+                    walker->rightChild = temp;
+                } // if
+                
+                else{
+                    temp = walker;
+                    if( walker->leftChild == NULL ) walker = walker->rightChild;
+                    else if( walker->rightChild == NULL ) walker = walker->leftChild;
+                    free( temp) ;
+                } //else
+                
+            } // else
+
         } // else
+
     } // Delete
     
     DataStruct* GetRightMost() {
