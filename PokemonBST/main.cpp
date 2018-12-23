@@ -217,6 +217,7 @@ public:
                 temp = Largest->same;
                 temp->leftChild = Largest->leftChild;
                 Largest = Largest->parent;
+                Largest->rightChild
                 Largest->rightChild = temp;
             } // if
             
