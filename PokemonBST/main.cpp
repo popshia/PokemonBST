@@ -26,6 +26,7 @@ typedef struct DataStruct {
     DataStruct* parent = NULL ;
     DataStruct* leftChild = NULL ;
     DataStruct* rightChild = NULL ;
+    bool visit = false ;
 } DataStruct ;
 
 static ifstream input ;
@@ -57,7 +58,7 @@ public:
         bool NotYet = true ;
         DataStruct* parentWalker = NULL ;
         DataStruct* treeWalker = NULL ;
-
+        
         
         if ( root == NULL ) {
             root = tempData ;
@@ -72,7 +73,6 @@ public:
                     parentWalker = treeWalker;
                     while ( parentWalker->parent != NULL )
                         parentWalker = parentWalker->parent ;
-                    
                     parentWalker->parent = tempData ;
                     NotYet = false ;
                     // cout << "same" << endl;
@@ -152,30 +152,71 @@ public:
         cout << "HP Tree Height: " << GetHeight( depth ) << endl << endl ;
     } // Analyze the whole input file
     
-    void Filter( int data, DataStruct* johnnyWalker ) {
-        if ( johnnyWalker == NULL ) return ;
-        if ( johnnyWalker->HP > data ) {
-            cout << johnnyWalker->HP << " > " << data << endl ;
-            qualified.push_back( johnnyWalker ) ;
-            visit ++ ;
-        } // qualified one
-        
-        if ( johnnyWalker->HP > data ) Filter( data, johnnyWalker->leftChild ) ;
-        Filter( data, johnnyWalker->rightChild ) ;
-    } // Filter and save to new vector
-    
-    void Sort( vector<DataStruct*> qualified ) {
-        for( int i = 0 ; i < qualified.size() ; i++ ) {
-            for( int j = i ; j < qualified.size() ; j++ ) {
-                if( qualified[i]->HP < qualified[j]->HP ) swap( qualified[i], qualified[j] ) ;
+    void SortAndPrintVisit() {
+        for ( int one = 0 ; one < qualified.size() ; one++ ) {
+            for ( int two = one ; two < qualified.size() ; two++ ) {
+                if ( qualified[one]->HP < qualified[two]->HP ) swap( qualified[one], qualified[two] ) ;
+                if ( qualified[one]->HP == qualified[two]->HP ) {
+                    if ( qualified[one]->number > qualified[two]->number ) swap( qualified[one], qualified[two] ) ;
+                } // same hp
             } // for
         } // for
-    }
+        cout << "\t#\tName\t\t\t\tType 1\t\tHP\tTotal\tAttack\tDefense" << endl ;
+        for ( int i = 0 ; i < qualified.size() ; i++ ) {
+            if ( i < 9 ) cout << "[  " << i+1 << "]\t" << qualified[i]->number << "\t" ;
+            else if ( i >= 9 && Count < 100 ) cout << "[ " << i+1 << "]\t" << qualified[i]->number << "\t" ;
+            else if ( i >= 100 ) cout << "[" << i+1 << "]\t" << qualified[i]->number << "\t" ;
+            if ( strlen( qualified[i]->name.c_str() ) < 8 ) cout << qualified[i]->name << "\t\t\t\t" ;
+            else if ( strlen( qualified[i]->name.c_str() ) >= 8 && strlen( qualified[i]->name.c_str() ) < 17 ) cout << qualified[i]->name << "\t\t\t" ;
+            else cout << qualified[i]->name << "\t\t" ;
+            // print name
+            if ( strlen( qualified[i]->type1.c_str() ) < 8 ) cout << qualified[i]->type1 << "\t\t" ;
+            else cout << qualified[i]->type1 << "\t" ;
+            // print type
+            cout << qualified[i]->total << "\t" ;
+            // print total
+            cout << qualified[i]->HP << "\t" ;
+            // print HP
+            cout << qualified[i]->ATK << "\t" ;
+            // print ATK
+            cout << qualified[i]->DEF << endl ;
+        } // print out the datas
+        cout << "Number of visited nodes = " << visit << endl << endl ;
+        visit = 0 ;
+        qualified.clear() ;
+    } // Sort the qualified vector
     
-    void Delete( int data ) ;
+    void Filter( int data, DataStruct* johnnyWalker ) {
+        DataStruct* parentWalker = NULL ;
+        if ( johnnyWalker == NULL ) return ;
+        if ( johnnyWalker->HP >= data ) {
+            if ( johnnyWalker->parent == NULL ) qualified.push_back( johnnyWalker ) ;
+            else {
+                parentWalker = johnnyWalker ;
+                while ( parentWalker != NULL ) {
+                    qualified.push_back( parentWalker ) ;
+                    parentWalker = parentWalker->parent ;
+                } // same
+            } // else
+        } // found
+        if ( johnnyWalker->HP >= data ) Filter( data, johnnyWalker->leftChild ) ;
+        Filter( data, johnnyWalker->rightChild ) ;
+        if ( johnnyWalker->visit == false ) {
+            visit++ ;
+            johnnyWalker->visit = true ;
+        } // check if visit or not
+    } // Filter and save to new vector
+    
+    void Delete( int data, DataStruct* Largest ) {
+        if( Largest->rightChild != NULL ) Delete( data, Largest->rightChild );
+        else {
+            if( Largest->leftChild != NULL && Largest->parent != NULL )
+        } // else
+    } // Delete
     
     DataStruct* GetRightMost() {
         DataStruct* walk = root ;
+        if ( walk->rightChild == NULL ) return walk ;
         while ( walk->rightChild != NULL )
             walk = walk->rightChild ;
         return walk ;
@@ -261,6 +302,7 @@ int main() {
                     else {
                         DataStruct* johnnyWalker = dataBase.GetRoot() ;
                         dataBase.Filter( atoi( FileN.c_str() ), johnnyWalker ) ;
+                        dataBase.SortAndPrintVisit() ;
                         function2Confirm = true ;
                     } // else
                 } // function run
