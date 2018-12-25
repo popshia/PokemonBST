@@ -1,4 +1,4 @@
-// 10627130 資工二甲 林冠良 & 10627131 資工二甲 李峻瑋 // CodeBlocks 17.12
+// 10627130 林冠良 & 10627131 李峻瑋 // CodeBlocks 17.12
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -42,8 +42,8 @@ class CollegeHighGoGoGo {
 public:
     DataStruct* GetRoot() {
         return root ;
-    } // get root
-
+    } // Get root
+    
     int GetHeight( DataStruct* depth ) {
         if ( depth == NULL ) return 0 ;
         else {
@@ -52,16 +52,17 @@ public:
             if ( leftDepth > rightDepth ) return leftDepth+1 ;
             else return rightDepth+1 ;
         } //else
-    } // GetHeight
-
+    } // Get tree height
+    
     void Insert( DataStruct* tempData ) {
         bool NotYet = true ;
         DataStruct* sameWalker = NULL ;
         DataStruct* treeWalker = NULL ;
-
-
+        
+        
         if ( root == NULL ) {
             root = tempData ;
+            tempData->parent = root ;
             tempData = NULL ;
             // cout << root->HP << endl ;
         }
@@ -78,7 +79,7 @@ public:
                     NotYet = false ;
                     // cout << "same" << endl;
                 } // if
-
+                
                 else if ( treeWalker->HP < tempData->HP ) {
                     if ( treeWalker->rightChild == NULL ) {
                         tempData->parent = treeWalker ;
@@ -86,10 +87,10 @@ public:
                         NotYet = false ;
                         // cout << "larger" << endl;
                     } // if
-
+                    
                     else treeWalker = treeWalker->rightChild ;
                 } // if
-
+                
                 else if ( treeWalker->HP > tempData->HP ) {
                     if ( treeWalker->leftChild == NULL ) {
                         tempData->parent = treeWalker ;
@@ -97,13 +98,13 @@ public:
                         NotYet = false ;
                         // cout << "smaller" << endl;
                     } // if
-
+                    
                     else treeWalker = treeWalker->leftChild ;
                 } // if
             } while ( NotYet ) ;
         } // else
     } // Insert by HP, print out the data
-
+    
     void Analyze() {
         root = NULL ;
         DataStruct* tempData = NULL ;
@@ -111,17 +112,17 @@ public:
         getline( input, value ) ; // read the labels in the first line
         tempData = new DataStruct ;
         cout << "\t#\tName\t\t\t\tType 1\t\tHP\tAttack\tDefense" << endl ;
-
+        
         while ( getline( input, value ) ) {
             tempData->whole = value ;
             // cout << tempData->whole << endl ;
             vector<string> cut ;
             string token ;
             istringstream cutStream( value ) ;
-
+            
             while ( getline( cutStream, token, '\t' ) ) // cut the token one by one
                 cut.push_back( token ) ;
-
+            
             tempData->number = cut[0] ;
             if ( Count < 10 ) cout << "[  " << Count << "]\t" << cut[0] << "\t" ;
             else if ( Count >= 10 && Count < 100 ) cout << "[ " << Count << "]\t" << cut[0] << "\t" ;
@@ -145,18 +146,18 @@ public:
             // print ATK
             tempData->DEF = atoi( cut[7].c_str() ) ;
             cout << cut[7] << endl ;
-
+            
             Count++ ;
             // cout<< tempData->HP<< endl ;
             Insert( tempData ) ;
             tempData = NULL ;
             tempData = new DataStruct ;
         } // get the whole file
-
+        
         DataStruct* depth = root ;
         cout << "HP Tree Height: " << GetHeight( depth ) << endl << endl ;
     } // Analyze the whole input file
-
+    
     void SortAndPrintVisit() {
         for ( int one = 0 ; one < qualified.size() ; one++ ) {
             for ( int two = one+1 ; two < qualified.size() ; two++ ) {
@@ -193,7 +194,7 @@ public:
         visit = 0 ;
         qualified.clear() ;
     } // Sort the qualified vector
-
+    
     void Filter( int data, DataStruct* johnnyWalker ) {
         DataStruct* sameWalker = NULL ;
         if ( johnnyWalker == NULL ) return ;
@@ -214,54 +215,76 @@ public:
             johnnyWalker->visit = true ;
         } // check if visit or not
     } // Filter and save to new vector
-
+    
     void Delete() {
         DataStruct* Largest = GetRightMost() ;
         DataStruct* temp = NULL ;
-        if ( !Largest ) cout << "BST empty!" << endl ;
+        if ( root == NULL ) cout << "BST empty!" << endl ;
         else {
-            if ( Largest->leftChild && Largest->rightChild ) {
-                cout << Largest->whole << endl ;
-                cout << "1" << endl ;
-                temp = Largest->same ;
-                temp->leftChild = Largest->leftChild ;
-                Largest = Largest->parent ;
-                Largest->rightChild = NULL;
-                Largest->rightChild = temp ;
+            if ( Largest->same ) {
+                if( root == Largest ) {
+                    cout << Largest->whole << endl ;
+                    //cout<< "6"<< endl ;
+                    temp = Largest->leftChild;
+                    root = Largest->same;
+                    Largest->same->parent = root;
+                    Largest->same->leftChild = temp;
+                    temp->parent = root;
+                } // if
+                else{
+                    cout << Largest->whole << endl ;
+                    //cout << "1" << endl ;
+                    temp = Largest->same ;
+                    temp->leftChild = Largest->leftChild ;
+                    Largest = Largest->parent ;
+                    delete Largest->rightChild;
+                    Largest->rightChild = temp ;
+                    temp->parent = Largest;
+                } //else
             } // if
-
-            else if ( !Largest->leftChild && Largest->rightChild ) {
+            
+            else if( root == Largest ) {
+                //cout<< "5"<<endl;
                 cout << Largest->whole << endl ;
-                cout << "2" << endl ;
-                temp = Largest->same ;
-                Largest = Largest->parent ;
-                Largest->rightChild = NULL;
-                Largest->rightChild = temp ;
+                root = Largest->leftChild;
+                if( Largest->leftChild ) Largest->leftChild->parent = root;
             } // if
-
+            
+            else if ( Largest->leftChild && !Largest->same ) {
+                cout << Largest->whole << endl ;
+                //cout << "3" << endl ;
+                temp = Largest->leftChild ;
+                Largest = Largest->parent ;
+                delete Largest->rightChild;
+                Largest->rightChild = temp ;
+                temp->parent = Largest;
+            } // if
+            
             else{
                 cout << Largest->whole << endl ;
-                cout << "3" << endl ;
+                //cout << "4" << endl ;
+                temp = Largest;
                 Largest = Largest->parent ;
                 Largest->rightChild = NULL;
+                temp->parent = NULL;
             } // else
         } // else
-    } // Delete
-
+    } // Delete and minus tree high
+    
     DataStruct* GetRightMost() {
         DataStruct* walk = root ;
         if ( walk->rightChild == NULL ) return walk ;
         while ( walk->rightChild != NULL )
             walk = walk->rightChild ;
         return walk ;
-    } // get the biggest data
+    } // Get the biggest data
 } ;
 
 int main() {
     int command = 0 ;
     bool continueOrNot = false ;
     CollegeHighGoGoGo dataBase ;
-
+    
     do {
         cout << "********************************************************" << endl ; // welcome message
         cout << "*****                  Pokemon BST                 *****" << endl ;
@@ -271,32 +294,32 @@ int main() {
         cout << "***** 3 : Delete the largest node                  *****" << endl ;
         cout << "********************************************************" << endl ;
         cout << endl << "Please enter your choice:" << endl ;
-
+        
         cin >> command ; // read in user command
         cout << endl ;
-
+        
         if ( command == 0 ) { // bye :(((
             cout << "Bye :(((" << endl ;
             return 0 ;
         } // quit
-
+        
         else if ( command > 3 || command < 0 ) {
             cout << "Error command! please enter an acceptable command:" << endl << endl ;
             continueOrNot = true ;
         } // wrong command
-
+        
         else if ( command == 1 ) { // read, count and copy
             bool function1Confirm = false ;
-
+            
             do {
                 cout << "Please enter the file you want to analyze or [0] to quit:" << endl ;
                 cin >> FileN ;
-
+                
                 if ( FileN == "0" ) {
                     function1Confirm = true ;
                     continueOrNot = true ;
                 } // quit
-
+                
                 else {
                     string fileName = "input" + FileN + ".txt" ;
                     input.open( fileName.c_str() ) ;
@@ -308,16 +331,16 @@ int main() {
                     else cout << "*****  " << fileName << " does not exist!  *****" << endl ;
                 } // open file and input data to BST
             } while( ! function1Confirm ) ;
-
+            
             Count = 0 ;
             FileN = "0" ;
             input.close() ;
             output.close() ;
         } // mission 1
-
+        
         else if ( command == 2 ) {
             bool function2Confirm = false ;
-
+            
             do {
                 if ( dataBase.GetRoot() == NULL ) {
                     cout << "*****  Execute Mission 1 first !  *****" << endl << endl ;
@@ -341,16 +364,16 @@ int main() {
                     } // else
                 } // function run
             } while ( ! function2Confirm ) ;
-
+            
             Count = 0 ;
             FileN = "0" ;
             input.close() ;
             output.close() ;
         } // mission 2
-
+        
         else if ( command == 3 ) {
             bool function3Confirm = false ;
-
+            
             do {
                 if ( dataBase.GetRoot() == NULL ) {
                     cout << "*****  Execute Mission 1 first !  *****" << endl << endl ;
